@@ -1,0 +1,51 @@
+import java.util.Scanner;
+
+public class Main {
+    private SceneManager sceneManager;
+    private Player player;
+    private PlayerActions playerActions;
+    private SensorManager sensorManager; // Singleton for managing sensors
+
+    public static void main(String[] args) {
+        Main game = new Main();
+        game.initializeGame();
+        game.startGameLoop();
+    }
+
+    public void initializeGame() {
+        sceneManager = new SceneManager();
+        sceneManager.initializeScenes();
+
+        player = new Player();
+        player.setCurrentScene(sceneManager.getScene("crashed spaceship"));
+
+        playerActions = new PlayerActions(player, sceneManager);
+
+        // Initialize and start sensor manager in a separate thread
+        sensorManager = SensorManager.getInstance();
+        Thread sensorThread = new Thread(sensorManager);
+        sensorThread.start();
+
+        System.out.println("Welcome to Astro Quest: Mars!");
+        System.out.println(player.getCurrentScene().describe());
+    }
+
+    public void startGameLoop() {
+        Scanner scanner = new Scanner(System.in);
+        boolean isRunning = true;
+
+        while (isRunning) {
+            System.out.print("Enter a command or type 'quit' to exit: ");
+            String command = scanner.nextLine();
+            if (command.equalsIgnoreCase("quit")) {
+                isRunning = false;
+                System.out.println("Exiting the game. Goodbye!");
+            } else {
+                playerActions.processCommand(command);
+            }
+        }
+
+        scanner.close();
+        sensorManager.stopSensors(); // Stop sensors when game ends
+    }
+}
